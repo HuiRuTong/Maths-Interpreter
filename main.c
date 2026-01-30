@@ -8,7 +8,6 @@
 
 typedef enum {
     NUMERICAL,
-    DECIMAL,
     OPERATION,
     BRACKETS,
     END
@@ -27,8 +26,7 @@ typedef struct {
 
 Token tokenise(Interpreter *interpreter) {
     /* 
-        Reads and tokenises character at pos then
-        increments pos once it's done
+        Reads and tokenises character at pos
     */
     char *current_char = malloc(NUMLEN * sizeof(char));
     Token return_token = {.value = malloc(NUMLEN * sizeof(char))};\
@@ -36,6 +34,7 @@ Token tokenise(Interpreter *interpreter) {
     if (interpreter->pos == strlen(interpreter->equation) - 1) {
         return_token.type = END;
         return_token.value = "\n";
+        free(current_char);
         return return_token;
     }
 
@@ -44,26 +43,69 @@ Token tokenise(Interpreter *interpreter) {
     strcpy(return_token.value, current_char);
 
     if (isdigit(current_char[0])) {
-        while (isdigit((interpreter->equation)[(interpreter->pos)+1])) {
+        return_token.type = NUMERICAL;
+        int decimals = 0;
+
+        // Appends other digits onto the first
+        while (isdigit((interpreter->equation)[(interpreter->pos) + 1]) ||
+               (interpreter->equation)[(interpreter->pos) + 1] == '.') {
             (interpreter->pos)++;
             current_char[0] = (interpreter->equation)[interpreter->pos];
+
+            if (!strcmp(current_char, ".") && ++decimals > 1) {
+                free(current_char);
+                free(return_token.value);
+                printf("You typed two decimal points in a number.");
+                exit(1);
+            }
             strcat(return_token.value, current_char);
         }
-        return return_token;
-    }
-
-    if (!strcmp(current_char, ".")) {
-        return_token.type = DECIMAL;
+        free(current_char);
         return return_token;
     }
 
     if (ispunct(current_char[0])) {
         return_token.type = OPERATION;
+        int sign = 1;
+
+        do {
+            if (!(strcmp(current_char, "+"))) {
+                sign *= 1;
+            } else if (!(strcmp(current_char, "-"))) {
+                sign *= -1;
+            } else {
+                // As long as there's an operator next to a * or /, reject it
+                if (ispunct((interpreter->equation)[(interpreter->pos) + 1]) ||
+                    ispunct((interpreter->equation)[(interpreter->pos) - 1])) {
+                    sign = 0;
+                    break;
+                }
+                // Don't change * and /
+                return return_token;
+            }
+            (interpreter->pos)++;
+            current_char[0] = (interpreter->equation)[interpreter->pos];
+        } while (ispunct((interpreter->equation)[interpreter->pos]));
+
+        (interpreter->pos)--;
+        if (sign > 0) {
+            return_token.value = "+";
+        } else if (sign < 0) {
+            return_token.value = "-";
+        } else {
+            free(current_char);
+            free(return_token.value);
+            printf("Don't mix and match + - with * /! Also, no mixing * /!\n");
+            exit(1);
+        }
+
+        free(current_char);
         return return_token;
     }
 
     if (!strcmp(current_char, "(") || (!strcmp(current_char, ")"))) {
         return_token.type = BRACKETS;
+        free(current_char);
         return return_token;
     }
 
@@ -71,34 +113,41 @@ Token tokenise(Interpreter *interpreter) {
     exit(1);
 }
 
+// DEAL WITH LEAKED MEM!!! //
+
 double parse(Interpreter *interpreter) {
     double result = 0;
-
     interpreter->current = tokenise(interpreter);
+
     while ((interpreter->current).type != END) {
         if ((interpreter->current).type == NUMERICAL) {
-            result += atoi((interpreter->current).value);
+            result += atof((interpreter->current).value);
         } else {
             if (!strcmp((interpreter->current).value, "+")) {
                 (interpreter->pos)++;
                 interpreter->current = tokenise(interpreter);
-                result += atoi((interpreter->current).value);
+
+                result += atof((interpreter->current).value);
             } else if (!strcmp((interpreter->current).value, "-")) {
                 (interpreter->pos)++;
                 interpreter->current = tokenise(interpreter);
-                result -= atoi((interpreter->current).value);
+
+                result -= atof((interpreter->current).value);
             } else if (!strcmp((interpreter->current).value, "*")) {
                 (interpreter->pos)++;
                 interpreter->current = tokenise(interpreter);
-                result *= atoi((interpreter->current).value);
+
+                result *= atof((interpreter->current).value);
             } else {
                 (interpreter->pos)++;
                 interpreter->current = tokenise(interpreter);
-                result /= atoi((interpreter->current).value);
+
+                result /= atof((interpreter->current).value);
             }
         }
+
         (interpreter->pos)++;
-        interpreter->current = tokenise(interpreter);       
+        interpreter->current = tokenise(interpreter);
 
     }
     return result;
@@ -114,6 +163,7 @@ int main() {
     printf("%lf\n", parse(&test));
 }
 
+// Returns a str with its space removed
 char *removeSpaces(char *str) {
     char *new = malloc(strlen(str) * sizeof(char));
     int i = 0;
