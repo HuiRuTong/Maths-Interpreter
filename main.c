@@ -5,10 +5,14 @@
 
 #define EQLEN 100
 #define NUMLEN 98
+const char *(FUNCLIST[]) = {"sqrt", "cbrt", "ln", "log10", "ceil", "floor",
+                            "sin", "cos", "tan", "asin", "acos", "atan"
+                            "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"};
 
 typedef enum {
     NUMERICAL,
     OPERATION,
+    FUNCTION,
     BRACKETS,
     SPACE,
     END
@@ -41,14 +45,21 @@ void errInvalidOperatorCombination() {
     printf("No clue what you mean, bud.\n");
     exit(1);
 }
-void errUndefinedSymbol() {
+void errUnknownSymbol() {
     printf("You've entered a symbol I don't recognise.\n");
+    exit(1);
+}
+void errUnknownFunction () {
+    printf("You've entered a function I don't recognise.\n");
     exit(1);
 }
 void errDivByZero() {
     printf("Absolutely not!");
     exit(1);
 }
+
+char advanceChar(Interpreter *);
+void advanceToken(Interpreter *);
 
 Token tokenise(Interpreter *interpreter) {
     /* 
@@ -76,12 +87,11 @@ Token tokenise(Interpreter *interpreter) {
             decimals += 1;
         }
 
-        // Appends other digits onto the first
+        // Appends other digits onto the first if there's > 1 digit
         while (isdigit((interpreter->equation)[(interpreter->pos) + 1]) ||
               (interpreter->equation)[(interpreter->pos) + 1] == '.' ||
               (interpreter->equation)[(interpreter->pos) + 1] == ' ') {
-            (interpreter->pos)++;
-            current_char[0] = (interpreter->equation)[interpreter->pos];
+            current_char[0] = advanceChar(interpreter);
 
             if (current_char[0] == ' ') {
                 continue;
@@ -112,8 +122,9 @@ Token tokenise(Interpreter *interpreter) {
                     errMissingOperand();
                 }
 
+                // To handle strings of + and -
                 if (current_char[0] == '+' || current_char[0] == '-') {
-                    if (muldiv) {
+                    if (muldiv) {   // If there was a * or / beforehand, reject the equation
                         free(current_char);
                         free(return_token.value);
                         errInvalidOperatorCombination();
@@ -125,7 +136,7 @@ Token tokenise(Interpreter *interpreter) {
                         sign *= -1;
                     }
                 } else {
-                    if (sign) {
+                    if (sign) {    // If there was a + or - beforehand, reject the equation
                         free(current_char);
                         free(return_token.value);
                         errInvalidOperatorCombination();
@@ -140,11 +151,10 @@ Token tokenise(Interpreter *interpreter) {
                     */
                 }
             }
-            (interpreter->pos)++;
-            current_char[0] = (interpreter->equation)[interpreter->pos];
+            current_char[0] = advanceChar(interpreter);
         } while (ispunct(current_char[0]) || isspace(current_char[0]));
-
         (interpreter->pos)--;
+        
         if (sign > 0) {
             return_token.value = "+";
         } else if (sign < 0) {
@@ -155,19 +165,61 @@ Token tokenise(Interpreter *interpreter) {
         return return_token;
     }
 
+    if (isalpha(current_char[0])) {
+        return_token.type = FUNCTION;
+        char fx[6];
+        int i = 0;
+        fx[0] = '\0';
+
+        do {
+            if (i > 4) {
+                errUnknownFunction();
+            }
+
+            fx[i] = current_char[0];
+            fx[i+1] = '\0';
+
+            current_char[0] = advanceChar(interpreter);
+        } while (isalpha(current_char[0]));
+        (interpreter->pos)--; // Set the position back to the last character of the funciton
+
+        if (strlen(fx) < 3) {
+            errUnknownFunction();
+        }
+
+        for (int i = 0; i < 18; i++) {
+            if (!strcmp(fx, FUNCLIST[i])) {
+                strcpy(return_token.value, fx);
+                free(current_char);
+                return return_token;
+            }
+        }
+        errUnknownFunction();
+    }
+
     if (!strcmp(current_char, "(") || (!strcmp(current_char, ")"))) {
         return_token.type = BRACKETS;
         free(current_char);
         return return_token;
     }
 
-    if(!strcmp(current_char, " ")) {
+    if(current_char[0] == ' ') {
         return_token.type = SPACE;
         free(current_char);
         return return_token;
     }
 
-    errUndefinedSymbol();
+    errUnknownSymbol();
+}
+
+char advanceChar(Interpreter *interpreter) {
+    (interpreter->pos)++;
+    return (interpreter->equation)[interpreter->pos];
+}
+
+void advanceToken(Interpreter *interpreter) {
+    (interpreter->pos)++;
+    (interpreter->current) = tokenise(interpreter);
 }
 
 // DEAL WITH LEAKED MEM!!! //
@@ -177,36 +229,30 @@ double parse(Interpreter *interpreter) {
     interpreter->current = tokenise(interpreter);
 
     while ((interpreter->current).type != END) {
+        int curr_type = (interpreter->current).type;
+        char *curr_value = (interpreter->current).value;
+
         if ((interpreter->current).type == NUMERICAL) {
-            result += atof((interpreter->current).value);
-        } else if ((interpreter->current).type == OPERATION) {
-            if (!strcmp((interpreter->current).value, "+")) {
-                (interpreter->pos)++;
-                interpreter->current = tokenise(interpreter);
-
-                result += atof((interpreter->current).value);
+            result += atof(curr_value);
+        } else if (curr_type == OPERATION) {
+            if (!strcmp(curr_value, "+")) {
+                advanceToken(interpreter);  // Move to a number
+                result += atof((interpreter->current).value);   // Then perform the operation
             } else if (!strcmp((interpreter->current).value, "-")) {
-                (interpreter->pos)++;
-                interpreter->current = tokenise(interpreter);
-
+                advanceToken(interpreter);
                 result -= atof((interpreter->current).value);
             } else if (!strcmp((interpreter->current).value, "*")) {
-                do {
-                    (interpreter->pos)++;
-                    interpreter->current = tokenise(interpreter);
-                } while ((interpreter->current).type != NUMERICAL);
-
+                advanceToken(interpreter);
                 result *= atof((interpreter->current).value);
             } else {
-                do {
-                    (interpreter->pos)++;
-                    interpreter->current = tokenise(interpreter);
-                } while ((interpreter->current).type != NUMERICAL);
-
+                advanceToken(interpreter);
                 result /= atof((interpreter->current).value);
             }
-        } else {
-            // This is supposed to be for the brackets
+        } else if ((interpreter->current).type == FUNCTION) {
+            // I introduce to you, the If Glorb
+            if (0) {
+
+            }
         }
 
         (interpreter->pos)++;
