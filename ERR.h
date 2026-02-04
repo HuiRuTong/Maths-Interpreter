@@ -1,13 +1,16 @@
 #ifndef ERR_H
 #define ERR_H
+#include "TOKENS.h"
 
-void errFunc(void *, char *, char *);
+typedef enum {
+    MULTIPLE_DECIMALS,
+    MISSING_OPERAND,
+    INVALID_OPERATOR_COMBINATION,
+    UNKNOWN_SYMBOL,
+    UNKNOWN_FUNCTION,
+    DIV_BY_ZERO,
+} ErrType;
 
-void errMultipleDecimals();
-void errMissingOperand();
-void errInvalidOperatorCombination();
-void errUnknownSymbol();
-void errUnknownFunction ();
-void errDivByZero();
+void errFunc(ErrType, char *, Token *);
 
 #endif

@@ -2,6 +2,11 @@
 #define TOKENS_H
 #include <stdlib.h>
 
+#define EQLEN 100 // Maximum length of equation
+#define NUMLEN 98 // Maximum length of a number
+// List of defined functions
+extern const char *(FUNCLIST[]);
+
 typedef enum {
     NUMERICAL,
     OPERATION,
@@ -9,10 +14,10 @@ typedef enum {
     BRACKETS,
     SPACE,
     END
-} TokenTypes;
+} TokenType;
 
 typedef struct {
-    TokenTypes type;
+    TokenType type;
     char *value;
 } Token;
 
