@@ -1,6 +1,6 @@
 #ifndef TOKENS_H
 #define TOKENS_H
-#include <stdlib.h>
+#include <stddef.h>
 
 #define EQLEN 100 // Maximum length of equation
 #define NUMLEN 98 // Maximum length of a number
@@ -11,7 +11,7 @@ typedef enum {
     NUMERICAL,
     OPERATION,
     FUNCTION,
-    BRACKETS,
+    PARENTHESES,
     SPACE,
     END
 } TokenType;

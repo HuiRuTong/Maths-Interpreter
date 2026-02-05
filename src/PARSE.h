@@ -4,6 +4,7 @@
 
 static void advanceToken(Interpreter *);
 
+double term(Interpreter *interpreter);
 double exponent(Interpreter *interpreter);
 double mulDiv(Interpreter *interpreter);
 double addSub(Interpreter *interpreter);

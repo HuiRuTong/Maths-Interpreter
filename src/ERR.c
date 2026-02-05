@@ -3,9 +3,8 @@
 #include "ERR.h"
 #include "TOKENS.h"
 
-void errFunc(ErrType err_type, char *curr_char, Token *return_token) {
-    if (!curr_char) {free(curr_char);}
-    if (!return_token->value) {free(return_token->value);}
+void errFunc(ErrType err_type, Token *return_token) {
+    if (return_token) {free(return_token->value);}
 
     switch (err_type) {
     case MULTIPLE_DECIMALS:
@@ -25,6 +24,9 @@ void errFunc(ErrType err_type, char *curr_char, Token *return_token) {
         break;
     case DIV_BY_ZERO:
         printf("Absolutely not!\n");
+        break;
+    case MISSING_PARENTHESES:
+        printf("You forgot a parenthesis.\n");
         break;
     default:
         printf("omfg what did you do?!\n");
