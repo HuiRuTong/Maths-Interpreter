@@ -3,8 +3,9 @@
 #include <ctype.h>
 #include "TOKENS.h"
 #include "ERR.h"
+#include <stdio.h>
 
-const char *(FUNCLIST[]) = {"sqrt", "cbrt", "ln", "log10", "ceil", "floor",
+const char *(FUNCLIST[]) = {"sqrt", "cbrt", "ln", "log", "ceil", "floor",
                             "sin", "cos", "tan", "asin", "acos", "atan"
                             "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"};
 
@@ -25,12 +26,27 @@ Token tokenise(Interpreter *interpreter) {
         advanceChar(interpreter, return_token.value);
     }
 
-    if (interpreter->pos == strlen(interpreter->equation) - 1) {
-        // If a parentheses isn't closed
-        
+    if (interpreter->pos == strlen(interpreter->equation) - 1) {        
         return_token.type = END;
         return_token.value = "\n";
         return return_token;
+    }
+
+    // Special cases where numbers are represented by non digits
+    if (return_token.value[0] == 'e') {
+        return_token.type = NUMERICAL;
+        return_token.value = "2.71828";
+        return return_token;
+    }
+    
+    if (return_token.value[0] == 'p') {
+        advanceChar(interpreter, return_token.value);
+        if (return_token.value[0] == 'i') {
+            return_token.type = NUMERICAL;
+            return_token.value = "3.14159";
+            return return_token;
+        }
+        errFunc(UNKNOWN_SYMBOL, &return_token);
     }
 
     if (isdigit(return_token.value[0]) || return_token.value[0] == '.') {
@@ -123,33 +139,29 @@ Token tokenise(Interpreter *interpreter) {
         return return_token;
     }
 
-    // Not used yet
     if (isalpha(return_token.value[0])) {
         return_token.type = FUNCTION;
-        char fx[6];
-        int i = 0;
-        fx[0] = '\0';
+        char curr_char = (interpreter->equation)[interpreter->pos];
+        int i = 0; // Index for return_token.value
 
         do {
-            if (i > 4) {errFunc(UNKNOWN_FUNCTION, &return_token);}
+            if (i > 5) {errFunc(UNKNOWN_SYMBOL, &return_token);} // No function is longer than 5 characters
 
-            fx[i] = return_token.value[0];
-            fx[i+1] = '\0';
+            return_token.value[i] = curr_char;
+            return_token.value[i+1] = '\0';
 
-            advanceChar(interpreter, return_token.value);
-        } while (isalpha(return_token.value[0]));
+            advanceChar(interpreter, &curr_char);
+            i++;
+        } while (isalpha(curr_char));
         (interpreter->pos)--; // Set the position back to the last character of the funciton
 
-        if (strlen(fx) < 3) {errFunc(UNKNOWN_FUNCTION, &return_token);}
+        if (strlen(return_token.value) < 2) {errFunc(UNKNOWN_SYMBOL, &return_token);} // No function is less than 2 characters
 
         for (int i = 0; i < 18; i++) {
-            if (!strcmp(fx, FUNCLIST[i])) {
-                strcpy(return_token.value, fx);
+            if (!strcmp(return_token.value, FUNCLIST[i])) {
                 return return_token;
             }
         }
-        errFunc(UNKNOWN_FUNCTION, &return_token);
+        errFunc(UNKNOWN_SYMBOL, &return_token);
     }
-
-    errFunc(UNKNOWN_SYMBOL, &return_token);
 }

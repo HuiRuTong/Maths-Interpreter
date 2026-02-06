@@ -12,7 +12,6 @@ typedef enum {
     OPERATION,
     FUNCTION,
     PARENTHESES,
-    SPACE,
     END
 } TokenType;
 

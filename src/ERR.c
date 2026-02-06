@@ -19,14 +19,14 @@ void errFunc(ErrType err_type, Token *return_token) {
     case UNKNOWN_SYMBOL:
         printf("You've entered a symbol I don't recognise.\n");
         break;
-    case UNKNOWN_FUNCTION:
-        printf("You've entered a function I don't recognise.\n");
-        break;
     case DIV_BY_ZERO:
-        printf("Absolutely not!\n");
+        printf("You've tried to divide by zero.!\n");
         break;
     case MISSING_PARENTHESES:
-        printf("You forgot a parenthesis.\n");
+        printf("You've forgotten a parenthesis.\n");
+        break;
+    case INVALID_ARGUMENT:
+        printf("You've entered an invalid argument for a function.\n");
         break;
     default:
         printf("omfg what did you do?!\n");
