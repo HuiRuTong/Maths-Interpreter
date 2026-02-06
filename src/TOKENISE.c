@@ -3,7 +3,6 @@
 #include <ctype.h>
 #include "TOKENS.h"
 #include "ERR.h"
-#include <stdio.h>
 
 const char *(FUNCLIST[]) = {"sqrt", "cbrt", "ln", "log", "ceil", "floor",
                             "sin", "cos", "tan", "asin", "acos", "atan"
@@ -35,7 +34,7 @@ Token tokenise(Interpreter *interpreter) {
     // Special cases where numbers are represented by non digits
     if (return_token.value[0] == 'e') {
         return_token.type = NUMERICAL;
-        return_token.value = "2.71828";
+        return_token.value = "2.71828183";
         return return_token;
     }
     
@@ -43,7 +42,7 @@ Token tokenise(Interpreter *interpreter) {
         advanceChar(interpreter, return_token.value);
         if (return_token.value[0] == 'i') {
             return_token.type = NUMERICAL;
-            return_token.value = "3.14159";
+            return_token.value = "3.14159265";
             return return_token;
         }
         errFunc(UNKNOWN_SYMBOL, &return_token);
@@ -96,8 +95,8 @@ Token tokenise(Interpreter *interpreter) {
             if (curr_char != ' ') {
                 // If there's nothing after an operator
                 if (curr_char == '\n') {errFunc(MISSING_OPERAND, &return_token);}
-                // I need to explicitly separate them from operators
-                if (curr_char == '(' || curr_char == ')') {break;}
+                // I need to explicitly separate these from operators
+                if (curr_char == '(' || curr_char == ')' || curr_char == '.') {break;}
 
                 if (curr_char == '+' || curr_char == '-') { // To handle strings of + and -
                     // If there was a * / or ^ beforehand, reject the equation

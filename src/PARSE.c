@@ -5,13 +5,10 @@
 #include "TOKENISE.h"
 #include "PARSE.h"
 #include "ERR.h"
-#include <stdio.h>
 
 static void advanceToken(Interpreter *interpreter) {
-    if ((interpreter->current).type != END) {
-        (interpreter->pos)++;
-        (interpreter->current) = tokenise(interpreter);
-    }
+    (interpreter->pos)++;
+    (interpreter->current) = tokenise(interpreter);
 }
 
 static int isValid(FuncType func_type, double arg) {
