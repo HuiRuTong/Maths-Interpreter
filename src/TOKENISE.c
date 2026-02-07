@@ -27,14 +27,17 @@ Token tokenise(Interpreter *interpreter) {
 
     if (interpreter->pos == strlen(interpreter->equation) - 1) {        
         return_token.type = END;
-        return_token.value = "\n";
         return return_token;
     }
 
     // Special cases where numbers are represented by non digits
     if (return_token.value[0] == 'e') {
         return_token.type = NUMERICAL;
-        return_token.value = "2.71828183";
+        // Here's a lesson for future me:
+        // DO NOT FUCKING ASSIGN A MALLOCED STRING WITH =
+        // ONLY ASSIGN EACH INDEX MANUALLY OR USE STRCPY
+        // YOU KNOW HOW LONG I SPENT TRYING TO FIX THE LEAKED MEMORY????
+        strcpy(return_token.value, "2.71828183");
         return return_token;
     }
     
@@ -42,7 +45,7 @@ Token tokenise(Interpreter *interpreter) {
         advanceChar(interpreter, return_token.value);
         if (return_token.value[0] == 'i') {
             return_token.type = NUMERICAL;
-            return_token.value = "3.14159265";
+            strcpy(return_token.value, "3.14159265");
             return return_token;
         }
         errFunc(UNKNOWN_SYMBOL, &return_token);
@@ -79,8 +82,12 @@ Token tokenise(Interpreter *interpreter) {
     }
 
     // Parentheses are considered punctuation for some reason
-    if (return_token.value[0] == '(' || return_token.value[0] == ')') {
-        return_token.type = PARENTHESES;
+    if (return_token.value[0] == '(') {
+        return_token.type = LPAREN;
+        return return_token;
+    }
+    if (return_token.value[0] == ')') {
+        return_token.type = RPAREN;
         return return_token;
     }
 
@@ -130,9 +137,9 @@ Token tokenise(Interpreter *interpreter) {
         (interpreter->pos)--;
         
         if (sign > 0) {
-            return_token.value = "+";
+            strcpy(return_token.value, "+");
         } else if (sign < 0) {
-            return_token.value = "-";
+            strcpy(return_token.value, "-");
         }
 
         return return_token;
@@ -152,6 +159,7 @@ Token tokenise(Interpreter *interpreter) {
             advanceChar(interpreter, &curr_char);
             i++;
         } while (isalpha(curr_char));
+        if (curr_char != '(') {errFunc(MISSING_PARENTHESES, &return_token);}
         (interpreter->pos)--; // Set the position back to the last character of the funciton
 
         if (strlen(return_token.value) < 2) {errFunc(UNKNOWN_SYMBOL, &return_token);} // No function is less than 2 characters

@@ -7,6 +7,7 @@
 #include "ERR.h"
 
 static void advanceToken(Interpreter *interpreter) {
+    free((interpreter->current).value);
     (interpreter->pos)++;
     (interpreter->current) = tokenise(interpreter);
 }
@@ -35,7 +36,7 @@ static int isValid(FuncType func_type, double arg) {
     errFunc(INVALID_ARGUMENT, NULL);
 }
 
-double term(Interpreter *interpreter) {
+double term(Interpreter *interpreter, TokenType terminal) {
     double result;
 
     if ((interpreter->current).type == NUMERICAL) {
@@ -49,102 +50,101 @@ double term(Interpreter *interpreter) {
             errFunc(INVALID_OPERATOR_COMBINATION, NULL);
         }
     // Functions are treated as terms since they only act on one variable
+    // The only thing that differs here is that their parsing stops once it encounters a )
     } else if ((interpreter->current).type == FUNCTION) {
         if (!strcmp((interpreter->current).value, "sqrt")) {
             advanceToken(interpreter);
-            double arg = addSub(interpreter);
+            double arg = addSub(interpreter, RPAREN);
 
             if (isValid(SQRT, arg)) {result = sqrt(arg);};
         } else if (!strcmp((interpreter->current).value, "cbrt")) {
             advanceToken(interpreter);
-            result = cbrt(addSub(interpreter));
+            result = cbrt(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "ln")) {
             advanceToken(interpreter);
 
-            double arg = addSub(interpreter);
+            double arg = addSub(interpreter, RPAREN);
             if (isValid(LOG, arg)) {result = log(arg);}
         } else if (!strcmp((interpreter->current).value, "log")) {
             advanceToken(interpreter);
 
-            double arg = addSub(interpreter);
+            double arg = addSub(interpreter, RPAREN);
             if (isValid(LOG, arg)) {result = log10(arg);}
         } else if (!strcmp((interpreter->current).value, "ceil")) {
             advanceToken(interpreter);
-            result = ceil(addSub(interpreter));
+            result = ceil(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "floor")) {
             advanceToken(interpreter);
-            result = floor(addSub(interpreter));
+            result = floor(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "sin")) {
             advanceToken(interpreter);
-            result = sin(addSub(interpreter));
+            result = sin(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "cos")) {
             advanceToken(interpreter);
-            result = cos(addSub(interpreter));
+            result = cos(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "tan")) {
             advanceToken(interpreter);
-            result = tan(addSub(interpreter));
+            result = tan(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "asin")) {
             advanceToken(interpreter);
 
-            double arg = addSub(interpreter);
+            double arg = addSub(interpreter, RPAREN);
             if (isValid(ATRIG, arg)) {result = asin(arg);}
         } else if (!strcmp((interpreter->current).value, "acos")) {
             advanceToken(interpreter);
 
-            double arg = addSub(interpreter);
+            double arg = addSub(interpreter, RPAREN);
             if (isValid(ATRIG, arg)) {result = acos(arg);}
         } else if (!strcmp((interpreter->current).value, "atan")) {
             advanceToken(interpreter);
-            result = atan(addSub(interpreter));
+            result = atan(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "sinh")) {
             advanceToken(interpreter);
-            result = sinh(addSub(interpreter));
+            result = sinh(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "cosh")) {
             advanceToken(interpreter);
-            result = cosh(addSub(interpreter));
+            result = cosh(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "tanh")) {
             advanceToken(interpreter);
-            result = tanh(addSub(interpreter));
+            result = tanh(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "asinh")) {
             advanceToken(interpreter);
-            result = asinh(addSub(interpreter));
+            result = asinh(addSub(interpreter, RPAREN));
         } else if (!strcmp((interpreter->current).value, "acosh")) {
             advanceToken(interpreter);
 
-            double arg = addSub(interpreter);
+            double arg = addSub(interpreter, RPAREN);
             if (isValid(ACOSH, arg)) {result = acosh(arg);}
         } else {
             advanceToken(interpreter);
 
-            double arg = addSub(interpreter);
+            double arg = addSub(interpreter, RPAREN);
             if (isValid(ATANH, arg)) {result = atanh(arg);}
         }
-    } else if ((interpreter->current).type == PARENTHESES) {
-        // This if only executes if ) is present before (
-        if (strcmp((interpreter->current).value, "(")) {errFunc(MISSING_PARENTHESES, NULL);}
-
+        advanceToken(interpreter);
+    } else if ((interpreter->current).type == LPAREN) {
             advanceToken(interpreter);
-            result = addSub(interpreter);
-            if (!strcmp((interpreter->current).value, ")")) {
-                advanceToken(interpreter);
-                return result;
-            } else {
-                // This checks if there's a ) present after a (
-                errFunc(MISSING_PARENTHESES, NULL);
-            }
+            result = addSub(interpreter, terminal);
+            // This checks if there's a ) present after a (
+            if ((interpreter->current).type != RPAREN) {errFunc(MISSING_PARENTHESES, NULL);}
+            
+            // The token is left at ) so no operations are carried out
+            if (terminal != RPAREN) {advanceToken(interpreter);}
     } else {
-        errFunc(-1, NULL);
+        // This is SUPPOSED to check if there's a ( present, but it literally only works if there's no numbers beforehand
+        errFunc(MISSING_PARENTHESES, NULL);
     }
     
     return result;
 }
 
-double exponent(Interpreter *interpreter) {
-    double result = term(interpreter);
+double exponent(Interpreter *interpreter, TokenType terminal) {
+    double result = term(interpreter, terminal);
     
-    while (!strcmp((interpreter->current).value, "^")) {
+    while (!strcmp((interpreter->current).value, "^")
+           && (interpreter->current).type != terminal) {
         advanceToken(interpreter);
-        double arg = term(interpreter);
+        double arg = term(interpreter, terminal);
         // Checks even roots for potential imaginary numbers
         // I didn't lump this into isValid() since it requires checking 2 arguments
         if ((fmod(1.0 / arg, 2.0) == 0.0) && result < 0) {
@@ -152,26 +152,23 @@ double exponent(Interpreter *interpreter) {
         } else {
             result = pow(result, arg);
         }
-
-        if ((interpreter->current).type == END) {
-            break;
-        }
     }
     
     return result;
 }
 
-double mulDiv(Interpreter *interpreter) {
-    double result = exponent(interpreter);
+double mulDiv(Interpreter *interpreter, TokenType terminal) {
+    double result = exponent(interpreter, terminal);
 
     // Evaluate strings of * and / e.g. 8 * 2 / 4 * 5
-    while (!strcmp((interpreter->current).value, "*") || !strcmp((interpreter->current).value, "/")) {
+    while ((!strcmp((interpreter->current).value, "*") || !strcmp((interpreter->current).value, "/"))
+           && (interpreter->current).type != terminal) {
         if (!strcmp((interpreter->current).value, "*")) {
             advanceToken(interpreter);
-            result *= exponent(interpreter);
+            result *= exponent(interpreter, terminal);
         } else {
             advanceToken(interpreter);
-            double divisor = exponent(interpreter);
+            double divisor = exponent(interpreter, terminal);
 
             // Yea it's finally fuckin' here; not that anyone is stupid enough to make this error, anyway
             if (divisor) {
@@ -180,29 +177,22 @@ double mulDiv(Interpreter *interpreter) {
                 errFunc(DIV_BY_ZERO, NULL);
             }
         }
-
-        if ((interpreter->current).type == END) {
-            break;
-        }
     }
 
     return result;
 }
 
-double addSub(Interpreter *interpreter) {
-    double result = mulDiv(interpreter);
+double addSub(Interpreter *interpreter, TokenType terminal) {
+    double result = mulDiv(interpreter, terminal);
 
-    while (!strcmp((interpreter->current).value, "+") || !strcmp((interpreter->current).value, "-")) {
+    while ((!strcmp((interpreter->current).value, "+") || !strcmp((interpreter->current).value, "-"))
+           && (interpreter->current).type != terminal) {
         if (!strcmp((interpreter->current).value, "+")) {
             advanceToken(interpreter);
-            result += mulDiv(interpreter);
+            result += mulDiv(interpreter, terminal);
         } else {
             advanceToken(interpreter);
-            result -= mulDiv(interpreter);
-        }
-
-        if ((interpreter->current).type == END) {
-            break;
+            result -= mulDiv(interpreter, terminal);
         }
     }
 
@@ -212,5 +202,5 @@ double addSub(Interpreter *interpreter) {
 double parse(Interpreter *interpreter) {
     interpreter->pos = 0;
     interpreter->current = tokenise(interpreter);
-    return addSub(interpreter);
+    return addSub(interpreter, END);
 }

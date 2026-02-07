@@ -11,7 +11,8 @@ typedef enum {
     NUMERICAL,
     OPERATION,
     FUNCTION,
-    PARENTHESES,
+    LPAREN,
+    RPAREN,
     END
 } TokenType;
 

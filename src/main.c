@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "TOKENS.h"
 #include "TOKENISE.h"
 #include "PARSE.h"
@@ -10,13 +11,13 @@
     2. basic calculator mode <- current
 */
 int main() {
-    Interpreter test = {.pos = 0};
-    char input[100];
+    Interpreter eq = {.pos = 0};
+    char input[EQLEN];
     while (1) {
         fgets(input, 100, stdin);
-        test.equation = input; 
+        eq.equation = input; 
 
-        printf("%lf\n", parse(&test));
-        test.pos = 0;
+        printf("%lf\n", parse(&eq));
+        free((eq.current).value);
     }
 }

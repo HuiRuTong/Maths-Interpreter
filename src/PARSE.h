@@ -10,15 +10,18 @@ typedef enum {
     ATANH
 } FuncType;
 
+extern int inFunction;
+
 static void advanceToken(Interpreter *);
 
 static int isValid(FuncType, double arg);
 
-double term(Interpreter *interpreter);
-double func(Interpreter *interpreter);
-double exponent(Interpreter *interpreter);
-double mulDiv(Interpreter *interpreter);
-double addSub(Interpreter *interpreter);
+double term(Interpreter *interpreter, TokenType);
+double func(Interpreter *interpreter, TokenType);
+double exponent(Interpreter *interpreter, TokenType);
+double mulDiv(Interpreter *interpreter, TokenType);
+double addSub(Interpreter *interpreter, TokenType);
+
 double parse(Interpreter *interpreter);
 
 #endif
