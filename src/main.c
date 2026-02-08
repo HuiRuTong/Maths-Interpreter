@@ -14,7 +14,7 @@ int main() {
     Interpreter eq = {.pos = 0};
     char input[EQLEN];
     while (1) {
-        fgets(input, 100, stdin);
+        fgets(input, EQLEN, stdin);
         eq.equation = input; 
 
         printf("%lf\n", parse(&eq));

@@ -5,7 +5,7 @@
 #include "ERR.h"
 
 const char *(FUNCLIST[]) = {"sqrt", "cbrt", "ln", "log", "ceil", "floor",
-                            "sin", "cos", "tan", "asin", "acos", "atan"
+                            "sin", "cos", "tan", "asin", "acos", "atan",
                             "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"};
 
 static void advanceChar(Interpreter *interpreter, char *c) {
@@ -100,8 +100,6 @@ Token tokenise(Interpreter *interpreter) {
         char curr_char = (interpreter->equation)[interpreter->pos];
         do {
             if (curr_char != ' ') {
-                // If there's nothing after an operator
-                if (curr_char == '\n') {errFunc(MISSING_OPERAND, &return_token);}
                 // I need to explicitly separate these from operators
                 if (curr_char == '(' || curr_char == ')' || curr_char == '.') {break;}
 
@@ -133,7 +131,7 @@ Token tokenise(Interpreter *interpreter) {
             }
 
             advanceChar(interpreter, &curr_char);
-        } while (ispunct(curr_char) || isspace(curr_char));
+        } while (ispunct(curr_char) || curr_char == ' ');
         (interpreter->pos)--;
         
         if (sign > 0) {
@@ -159,7 +157,8 @@ Token tokenise(Interpreter *interpreter) {
             advanceChar(interpreter, &curr_char);
             i++;
         } while (isalpha(curr_char));
-        if (curr_char != '(') {errFunc(MISSING_PARENTHESES, &return_token);}
+        // All functions arguments must be enclosed with ( and have no spaces between the function name and (
+        if (curr_char != '(') {errFunc(INVALID_ARGUMENT, &return_token);}
         (interpreter->pos)--; // Set the position back to the last character of the funciton
 
         if (strlen(return_token.value) < 2) {errFunc(UNKNOWN_SYMBOL, &return_token);} // No function is less than 2 characters

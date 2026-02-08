@@ -37,6 +37,12 @@ static int isValid(FuncType func_type, double arg) {
 }
 
 double term(Interpreter *interpreter, TokenType terminal) {
+    /*
+        Lumps multiple tokens together to form a "term", which includes:
+        - numbers
+        - expressions inside of parentheses
+        - values returned by functions
+    */
     double result;
 
     if ((interpreter->current).type == NUMERICAL) {
@@ -124,15 +130,15 @@ double term(Interpreter *interpreter, TokenType terminal) {
         advanceToken(interpreter);
     } else if ((interpreter->current).type == LPAREN) {
             advanceToken(interpreter);
-            result = addSub(interpreter, terminal);
+            result = addSub(interpreter, END);
             // This checks if there's a ) present after a (
             if ((interpreter->current).type != RPAREN) {errFunc(MISSING_PARENTHESES, NULL);}
             
-            // The token is left at ) so no operations are carried out
-            if (terminal != RPAREN) {advanceToken(interpreter);}
+            // The token is left at the terminal so no further operations are carried out
+            if ((interpreter->current).type != terminal) {advanceToken(interpreter);}
     } else {
-        // This is SUPPOSED to check if there's a ( present, but it literally only works if there's no numbers beforehand
-        errFunc(MISSING_PARENTHESES, NULL);
+        // This is SUPPOSED to only execute if there's a function / operator receives insufficient arguments
+        errFunc(MISSING_OPERAND, NULL);
     }
     
     return result;
@@ -141,9 +147,11 @@ double term(Interpreter *interpreter, TokenType terminal) {
 double exponent(Interpreter *interpreter, TokenType terminal) {
     double result = term(interpreter, terminal);
     
-    while (!strcmp((interpreter->current).value, "^")
+    while ((interpreter->current).value[0] == '^'
            && (interpreter->current).type != terminal) {
         advanceToken(interpreter);
+        // If an expression ends before the second operand
+        if ((interpreter->current).type == terminal) {errFunc(MISSING_OPERAND, NULL);}
         double arg = term(interpreter, terminal);
         // Checks even roots for potential imaginary numbers
         // I didn't lump this into isValid() since it requires checking 2 arguments
@@ -161,13 +169,15 @@ double mulDiv(Interpreter *interpreter, TokenType terminal) {
     double result = exponent(interpreter, terminal);
 
     // Evaluate strings of * and / e.g. 8 * 2 / 4 * 5
-    while ((!strcmp((interpreter->current).value, "*") || !strcmp((interpreter->current).value, "/"))
+    while (((interpreter->current).value[0] == '*' || (interpreter->current).value[0] == '/')
            && (interpreter->current).type != terminal) {
-        if (!strcmp((interpreter->current).value, "*")) {
+        if ((interpreter->current).value[0] == '*') {
             advanceToken(interpreter);
+            if ((interpreter->current).type == terminal) {errFunc(MISSING_OPERAND, NULL);}
             result *= exponent(interpreter, terminal);
         } else {
             advanceToken(interpreter);
+            if ((interpreter->current).type == terminal) {errFunc(MISSING_OPERAND, NULL);}
             double divisor = exponent(interpreter, terminal);
 
             // Yea it's finally fuckin' here; not that anyone is stupid enough to make this error, anyway
@@ -185,13 +195,15 @@ double mulDiv(Interpreter *interpreter, TokenType terminal) {
 double addSub(Interpreter *interpreter, TokenType terminal) {
     double result = mulDiv(interpreter, terminal);
 
-    while ((!strcmp((interpreter->current).value, "+") || !strcmp((interpreter->current).value, "-"))
+    while (((interpreter->current).value[0] == '+' || (interpreter->current).value[0] == '-')
            && (interpreter->current).type != terminal) {
-        if (!strcmp((interpreter->current).value, "+")) {
+        if ((interpreter->current).value[0] == '+') {
             advanceToken(interpreter);
+            if ((interpreter->current).type == terminal) {errFunc(MISSING_OPERAND, NULL);}
             result += mulDiv(interpreter, terminal);
         } else {
             advanceToken(interpreter);
+            if ((interpreter->current).type == terminal) {errFunc(MISSING_OPERAND, NULL);}
             result -= mulDiv(interpreter, terminal);
         }
     }
