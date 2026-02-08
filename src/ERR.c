@@ -11,7 +11,7 @@ void errFunc(ErrType err_type, Token *return_token) {
         printf("You've put too many decimal points in a number.\n");
         break;
     case MISSING_OPERAND:
-        printf("Seems you've forgotten something at the end.\n");
+        printf("Seems you've forgotten something.\n");
         break;
     case INVALID_OPERATOR_COMBINATION:
         printf("No clue what you mean, bud.\n");
@@ -34,4 +34,5 @@ void errFunc(ErrType err_type, Token *return_token) {
     }
 
     exit(1);
+
 }
