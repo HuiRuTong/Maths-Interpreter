@@ -1,18 +1,28 @@
 # Maths-Interpreter
 An interpreter for the user to enter basic maths expressions.
 
+# Usage
+I've included an .exe in case anyone is curious enough to actually use this.
 
 ## Syntax:
 1. Operators:
     - Plus (\+) & minus (\-) can be combined indefinitely
-    - Times (\*), divide (/), & exponentiation (^) cannot be combined with any other operator. If you wish to enter a negative operand, use parentheses _e.g. e^(-2)_.
-    - If no operand appears before an operator, it is assumed to be 0.
+    - Times (\*), divide (/), & exponentiation (^) cannot be combined with any other operator. If you wish to enter a negative exponent, use parentheses _e.g. e^(-2)_.
+    - If no operand appears before an + or -, it is assumed to be 0.
 
 2. Spaces:
-    - Between numbers and operations are OK but all functions should be one word.
+    - Between numbers and operations are OK but all functions and their arguments shouldn't be separated.
 
 3. Decimals:
-    - A missing digit before or after adecimal point (.) is assumed to be 0.
+    - Any missing digits before or after adecimal point (.) is assumed to be 0.
+
+4. Functions:
+    - See list below for all defined functions
+    - Function arguments must be inside parentheses
+    - Trig functions are all in radians. I'm not implementing a way to switch to degrees because radians are far superior.
+
+5. Special symbols:
+    - The interpreter recognises "e" and "pi" as 2.71828 and 3.14159 respectively
 
 
 ## List of Defined Functions

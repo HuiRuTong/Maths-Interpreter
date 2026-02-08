@@ -145,6 +145,9 @@ double term(Interpreter *interpreter, TokenType terminal) {
 }
 
 double exponent(Interpreter *interpreter, TokenType terminal) {
+    /*
+        Computes a ^ b
+    */
     double result = term(interpreter, terminal);
     
     while ((interpreter->current).value[0] == '^'
@@ -166,9 +169,11 @@ double exponent(Interpreter *interpreter, TokenType terminal) {
 }
 
 double mulDiv(Interpreter *interpreter, TokenType terminal) {
+    /*
+        Computes a * b & a / b
+    */
     double result = exponent(interpreter, terminal);
 
-    // Evaluate strings of * and / e.g. 8 * 2 / 4 * 5
     while (((interpreter->current).value[0] == '*' || (interpreter->current).value[0] == '/')
            && (interpreter->current).type != terminal) {
         if ((interpreter->current).value[0] == '*') {
@@ -193,6 +198,9 @@ double mulDiv(Interpreter *interpreter, TokenType terminal) {
 }
 
 double addSub(Interpreter *interpreter, TokenType terminal) {
+    /*
+        Computes a + b & a - b
+    */
     double result = mulDiv(interpreter, terminal);
 
     while (((interpreter->current).value[0] == '+' || (interpreter->current).value[0] == '-')
