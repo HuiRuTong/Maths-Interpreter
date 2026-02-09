@@ -34,4 +34,5 @@ void errFunc(ErrType err_type, Token *return_token) {
     }
 
     exit(1);
+
 }
