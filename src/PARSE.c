@@ -44,20 +44,24 @@ double term(Interpreter *interpreter, TokenType terminal) {
         - values returned by functions
     */
     double result;
+    static int no_open_paren = 0;
 
-    if ((interpreter->current).type == NUMERICAL) {
+    switch ((interpreter->current).type) {
+    case NUMERICAL:
         result = atof((interpreter->current).value);
         advanceToken(interpreter);
-    // This if should only execute if there's nothing at the start of an equation
-    } else if ((interpreter->current).type == OPERATION) {
-        if (!strcmp((interpreter->current).value, "+") || !strcmp((interpreter->current).value, "-")) {
+        break;
+    case OPERATION:
+        // This if should only execute if there's nothing at the start of an equation
+        if ((interpreter->current).value[0] == '+' || (interpreter->current).value[0] == '-') {
             result = 0; // To handle cases like +5-8 and -5*4
         } else {
             errFunc(INVALID_OPERATOR_COMBINATION, NULL);
         }
-    // Functions are treated as terms since they only act on one variable
-    // The only thing that differs here is that their parsing stops once it encounters a )
-    } else if ((interpreter->current).type == FUNCTION) {
+        break;
+    case FUNCTION:
+        // Functions are treated as terms since they only act on one variable
+        // The only thing that differs here is that their parsing stops once it encounters a )
         if (!strcmp((interpreter->current).value, "sqrt")) {
             advanceToken(interpreter);
             double arg = addSub(interpreter, RPAREN);
@@ -127,20 +131,36 @@ double term(Interpreter *interpreter, TokenType terminal) {
             double arg = addSub(interpreter, RPAREN);
             if (isValid(ATANH, arg)) {result = atanh(arg);}
         }
+
         advanceToken(interpreter);
-    } else if ((interpreter->current).type == LPAREN) {
-            advanceToken(interpreter);
-            result = addSub(interpreter, END);
-            // This checks if there's a ) present after a (
-            if ((interpreter->current).type != RPAREN) {errFunc(MISSING_PARENTHESES, NULL);}
-            
-            // The token is left at the terminal so no further operations are carried out
-            if ((interpreter->current).type != terminal) {advanceToken(interpreter);}
-    } else {
-        // This is SUPPOSED to only execute if there's a function / operator receives insufficient arguments
+        break;
+    case LPAREN:
+        no_open_paren++;
+        
+        advanceToken(interpreter);
+        result = addSub(interpreter, END);
+        // This checks if there's a ) present after a (
+        if ((interpreter->current).type != RPAREN) {errFunc(MISSING_PARENTHESES, NULL);}
+        --no_open_paren;
+
+        // Stop moving pos if at the terminal so no furthur operations are carried out
+        if ((interpreter->current).type == terminal) {return result;}
+        advanceToken(interpreter);
+        break;
+    case RPAREN:
+        if (--no_open_paren < 0) {errFunc(MISSING_PARENTHESES, NULL);}
+
+        // This is for empty functions
         errFunc(MISSING_OPERAND, NULL);
+        break;
+    default:
+        // This executes if (interpreter->current).value == terminal which only really happens when there's no second argument
+        errFunc(MISSING_OPERAND, NULL);
+        break;
     }
-    
+
+    if ((interpreter->current).type == RPAREN && no_open_paren <= 0) {errFunc(MISSING_PARENTHESES, NULL);}
+
     return result;
 }
 
@@ -222,5 +242,6 @@ double addSub(Interpreter *interpreter, TokenType terminal) {
 double parse(Interpreter *interpreter) {
     interpreter->pos = 0;
     interpreter->current = tokenise(interpreter);
+    
     return addSub(interpreter, END);
 }

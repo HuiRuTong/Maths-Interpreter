@@ -1,9 +1,6 @@
 # Maths-Interpreter
 An interpreter for the user to enter basic maths expressions.
 
-# Usage
-I've included an .exe in case anyone is curious enough to actually use this.
-
 ## Syntax:
 1. Operators:
     - Plus (\+) & minus (\-) can be combined indefinitely
