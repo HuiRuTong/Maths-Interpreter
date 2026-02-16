@@ -16,12 +16,11 @@ static void advanceToken(Interpreter *);
 
 static int isValid(FuncType, double arg);
 
-double term(Interpreter *interpreter, TokenType);
-double func(Interpreter *interpreter, TokenType);
-double exponent(Interpreter *interpreter, TokenType);
-double mulDiv(Interpreter *interpreter, TokenType);
-double addSub(Interpreter *interpreter, TokenType);
+double term(Interpreter *, TokenType, double);
+double exponent(Interpreter *, TokenType, double);
+double mulDiv(Interpreter *, TokenType, double);
+double addSub(Interpreter *, TokenType, double);
 
-double parse(Interpreter *interpreter);
+double parse(Interpreter *, double);
 
 #endif

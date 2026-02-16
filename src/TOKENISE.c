@@ -144,7 +144,13 @@ Token tokenise(Interpreter *interpreter) {
     }
 
     if (isalpha(return_token.value[0])) {
+        if (return_token.value[0] == 'x') {
+            return_token.type = VARIABLE;
+            return return_token;
+        }
+
         return_token.type = FUNCTION;
+
         char curr_char = (interpreter->equation)[interpreter->pos];
         int i = 0; // Index for return_token.value
 
@@ -157,12 +163,16 @@ Token tokenise(Interpreter *interpreter) {
             advanceChar(interpreter, &curr_char);
             i++;
         } while (isalpha(curr_char));
-        // All functions arguments must be enclosed with ( and have no spaces between the function name and (
-        if (curr_char != '(') {errFunc(INVALID_ARGUMENT, &return_token);}
-        (interpreter->pos)--; // Set the position back to the last character of the funciton
 
-        if (strlen(return_token.value) < 2) {errFunc(UNKNOWN_SYMBOL, &return_token);} // No function is less than 2 characters
+        if (curr_char != '(') {         // All functions arguments must be enclosed w/ no spaces between the function name & (
+            errFunc(INVALID_ARGUMENT, &return_token);
+        } 
+        if (i < 2) {                    // No function is less than 2 characters
+            errFunc(UNKNOWN_SYMBOL, &return_token);
+        }
 
+        (interpreter->pos)--; // Set the position back to the last character of the function
+        
         for (int i = 0; i < 18; i++) {
             if (!strcmp(return_token.value, FUNCLIST[i])) {
                 return return_token;

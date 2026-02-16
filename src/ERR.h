@@ -9,7 +9,8 @@ typedef enum {
     UNKNOWN_SYMBOL,
     DIV_BY_ZERO,
     MISSING_PARENTHESES,
-    INVALID_ARGUMENT
+    INVALID_ARGUMENT,
+    INIT_ISSUES
 } ErrType;
 
 void errFunc(ErrType, Token *);

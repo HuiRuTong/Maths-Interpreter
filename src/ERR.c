@@ -26,7 +26,10 @@ void errFunc(ErrType err_type, Token *return_token) {
         printf("You've forgotten a parenthesis.\n");
         break;
     case INVALID_ARGUMENT:
-        printf("You've entered an invalid argument for a function.\n");
+        printf("You've entered an invalid argument.\n");
+        break;
+    case INIT_ISSUES:
+        printf("Only 1 argument for main, please!\n");
         break;
     default:
         printf("omfg what did you do?!\n");

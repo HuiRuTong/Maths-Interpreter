@@ -5,19 +5,43 @@
 #include "PARSE.h"
 #include "ERR.h"
 
-/*
-    To implement:
-    1. a mode for you to enter up to 2 variables
-    2. basic calculator mode <- current
-*/
-int main() {
+int main(int argc, char **argv) {
     Interpreter eq = {.pos = 0};
     char input[EQLEN];
-    while (1) {
+    int var_calc = 0;
+    double var = 0;
+
+    if (argc == 2) {
+        var_calc = 1;
+    } else if (argc > 2) {
+        errFunc(INIT_ISSUES, NULL);
+    }
+    
+    if (var_calc) {
+        printf("Enter an expresion:\n");
         fgets(input, EQLEN, stdin);
         eq.equation = input; 
 
-        printf("%lf\n", parse(&eq));
-        free((eq.current).value);
+        while (1) {
+            printf("Evaluate at:\n");
+            if (!scanf(" %lf", &var)) {
+                errFunc(INVALID_ARGUMENT, NULL);
+                exit(1);
+            }
+
+            printf("%lf\n", parse(&eq, var));
+            free((eq.current).value);
+        }
+    } else {
+        while (1) {
+            printf("Enter an expresion:\n");
+            fgets(input, EQLEN, stdin);
+            eq.equation = input;
+
+            printf("%lf\n", parse(&eq, var));
+            free((eq.current).value);
+        }
     }
+
+    
 }

@@ -8,18 +8,22 @@ An interpreter for the user to enter basic maths expressions.
     - If no operand appears before an + or -, it is assumed to be 0.
 
 2. Spaces:
-    - Between numbers and operations are OK but all functions and their arguments shouldn't be separated.
+    - Between numbers, variables, and operations are OK but all functions and their arguments shouldn't be separated.
+    - Also don't separate pi. It's one word.
 
 3. Decimals:
-    - Any missing digits before or after adecimal point (.) is assumed to be 0.
+    - Any missing digits before or after a decimal point (.) is assumed to be 0.
 
-4. Functions:
+5. Functions:
     - See list below for all defined functions
     - Function arguments must be inside parentheses
     - Trig functions are all in radians. I'm not implementing a way to switch to degrees because radians are far superior.
 
-5. Special symbols:
+6. Special symbols:
     - The interpreter recognises "e" and "pi" as 2.71828 and 3.14159 respectively
+
+## Variable Mode
+This calculator can also be set to evaluate an equation at differing values of x (and ONLY x)! Compile and run main with 1 as the second argument to enter Variable mode. Multiplication between variables & numbers or functions can omit the operator (*).
 
 
 ## List of Defined Functions

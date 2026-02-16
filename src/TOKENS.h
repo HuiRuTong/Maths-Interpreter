@@ -9,6 +9,7 @@ extern const char *(FUNCLIST[]);
 
 typedef enum {
     NUMERICAL,
+    VARIABLE, 
     OPERATION,
     FUNCTION,
     LPAREN,
