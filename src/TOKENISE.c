@@ -149,8 +149,6 @@ Token tokenise(Interpreter *interpreter) {
             return return_token;
         }
 
-        return_token.type = FUNCTION;
-
         char curr_char = (interpreter->equation)[interpreter->pos];
         int i = 0; // Index for return_token.value
 
@@ -172,7 +170,7 @@ Token tokenise(Interpreter *interpreter) {
         }
 
         (interpreter->pos)--; // Set the position back to the last character of the function
-        
+        return_token.type = FUNCTION;
         for (int i = 0; i < 18; i++) {
             if (!strcmp(return_token.value, FUNCLIST[i])) {
                 return return_token;

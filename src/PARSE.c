@@ -53,6 +53,7 @@ double term(Interpreter *interpreter, TokenType terminal, double var) {
 
         // This calls term not addSub() because I only want what's immediately after
         if ((interpreter->current).type == VARIABLE) {
+            if (var == INFINITY) {errFunc(UNKNOWN_SYMBOL, NULL);}
             result *= term(interpreter, END, var);
         }
         if ((interpreter->current).type == FUNCTION) {
@@ -61,6 +62,8 @@ double term(Interpreter *interpreter, TokenType terminal, double var) {
 
         break;
     case VARIABLE:
+        if (var == INFINITY) {errFunc(UNKNOWN_SYMBOL, NULL);}
+        
         result = var;
         advanceToken(interpreter);
 

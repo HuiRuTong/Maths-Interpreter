@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "TOKENS.h"
 #include "TOKENISE.h"
 #include "PARSE.h"
@@ -8,7 +9,7 @@
 int main(int argc, char **argv) {
     Interpreter eq = {.pos = 0};
     char input[EQLEN];
-    int var_calc = 0;
+    int var_calc = 0;       // 1 if the calculator is set to variable mode
     double var = 0;
 
     if (argc == 2) {
@@ -38,7 +39,7 @@ int main(int argc, char **argv) {
             fgets(input, EQLEN, stdin);
             eq.equation = input;
 
-            printf("%lf\n", parse(&eq, var));
+            printf("%lf\n", parse(&eq, INFINITY));
             free((eq.current).value);
         }
     }
