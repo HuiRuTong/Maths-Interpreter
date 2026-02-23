@@ -32,7 +32,7 @@ Token tokenise(Interpreter *interpreter) {
 
     // Special cases where numbers are represented by non digits
     if (return_token.value[0] == 'e') {
-        return_token.type = NUMERICAL;
+        return_token.type = CONSTANT;
         // Here's a lesson for future me:
         // DO NOT FUCKING ASSIGN A MALLOCED STRING WITH =
         // ONLY ASSIGN EACH INDEX MANUALLY OR USE STRCPY
@@ -44,11 +44,16 @@ Token tokenise(Interpreter *interpreter) {
     if (return_token.value[0] == 'p') {
         advanceChar(interpreter, return_token.value);
         if (return_token.value[0] == 'i') {
-            return_token.type = NUMERICAL;
+            return_token.type = CONSTANT;
             strcpy(return_token.value, "3.14159265");
             return return_token;
         }
         errFunc(UNKNOWN_SYMBOL, &return_token);
+    }
+
+    if (return_token.value[0] == 'x') {
+        return_token.type = VARIABLE;
+        return return_token;
     }
 
     if (isdigit(return_token.value[0]) || return_token.value[0] == '.') {
@@ -105,7 +110,7 @@ Token tokenise(Interpreter *interpreter) {
 
                 if (curr_char == '+' || curr_char == '-') { // To handle strings of + and -
                     // If there was a * / or ^ beforehand, reject the equation
-                    if (muldiv || exp) {errFunc(INVALID_OPERATOR_COMBINATION, &return_token);}
+                    if (muldiv || exp) {errFunc(INVALID_COMBINATION, &return_token);}
                     sign = 1;
                     muldiv = 0;
                     exp = 0;
@@ -113,20 +118,20 @@ Token tokenise(Interpreter *interpreter) {
                     if (curr_char == '-') {sign *= -1;}
                 } else if (curr_char == '*' || curr_char == '/') {
                     // If there was a + -  ^ beforehand, reject the equation
-                    if (sign || exp) {errFunc(INVALID_OPERATOR_COMBINATION, &return_token);}
+                    if (sign || exp) {errFunc(INVALID_COMBINATION, &return_token);}
 
                     sign = 0;
                     exp = 0;
 
-                    if (++muldiv > 1) {errFunc(INVALID_OPERATOR_COMBINATION, &return_token);}
+                    if (++muldiv > 1) {errFunc(INVALID_COMBINATION, &return_token);}
                 } else if (return_token.value[0] == '^') {
                     // Take a wild guess as to why this is here
-                    if (sign || muldiv) {errFunc(INVALID_OPERATOR_COMBINATION, &return_token);}
+                    if (sign || muldiv) {errFunc(INVALID_COMBINATION, &return_token);}
                     
                     sign = 0;
                     muldiv = 0;
 
-                    if (++exp > 1) {errFunc(INVALID_OPERATOR_COMBINATION, &return_token);}
+                    if (++exp > 1) {errFunc(INVALID_COMBINATION, &return_token);}
                 } else {errFunc(UNKNOWN_SYMBOL, &return_token);}
             }
 
@@ -144,10 +149,7 @@ Token tokenise(Interpreter *interpreter) {
     }
 
     if (isalpha(return_token.value[0])) {
-        if (return_token.value[0] == 'x') {
-            return_token.type = VARIABLE;
-            return return_token;
-        }
+        return_token.type = FUNCTION;
 
         char curr_char = (interpreter->equation)[interpreter->pos];
         int i = 0; // Index for return_token.value
@@ -170,7 +172,7 @@ Token tokenise(Interpreter *interpreter) {
         }
 
         (interpreter->pos)--; // Set the position back to the last character of the function
-        return_token.type = FUNCTION;
+        
         for (int i = 0; i < 18; i++) {
             if (!strcmp(return_token.value, FUNCLIST[i])) {
                 return return_token;

@@ -9,7 +9,7 @@
 int main(int argc, char **argv) {
     Interpreter eq = {.pos = 0};
     char input[EQLEN];
-    int var_calc = 0;       // 1 if the calculator is set to variable mode
+    int var_calc = 0;
     double var = 0;
 
     if (argc == 2) {

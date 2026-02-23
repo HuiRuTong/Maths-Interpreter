@@ -13,7 +13,7 @@ void errFunc(ErrType err_type, Token *return_token) {
     case MISSING_OPERAND:
         printf("Seems you've forgotten something.\n");
         break;
-    case INVALID_OPERATOR_COMBINATION:
+    case INVALID_COMBINATION:
         printf("No clue what you mean, bud.\n");
         break;
     case UNKNOWN_SYMBOL:

@@ -51,24 +51,53 @@ double term(Interpreter *interpreter, TokenType terminal, double var) {
         result = atof((interpreter->current).value);
         advanceToken(interpreter);
 
-        // This calls term not addSub() because I only want what's immediately after
+        // If there's no following operation, treat the whole thing as a single term
+        if ((interpreter->current).type == CONSTANT ||
+            (interpreter->current).type == FUNCTION ||
+            (interpreter->current).type == LPAREN) {
+            result *= term(interpreter, END, var);      // This calls term not addSub() because I only want what's immediately after
+        }
+
+        // Separate so an x in standard mode causes an error
         if ((interpreter->current).type == VARIABLE) {
             if (var == INFINITY) {errFunc(UNKNOWN_SYMBOL, NULL);}
             result *= term(interpreter, END, var);
         }
-        if ((interpreter->current).type == FUNCTION) {
+
+        break;
+    case CONSTANT:
+        result = atof((interpreter->current).value);
+        advanceToken(interpreter);
+
+        // So 1.34e works but e1.34 doesn't
+        if ((interpreter->current).type == NUMERICAL) {
+            errFunc(INVALID_COMBINATION, NULL);
+        }
+        
+        if ((interpreter->current).type == CONSTANT ||
+            (interpreter->current).type == FUNCTION ||
+            (interpreter->current).type == LPAREN) {
             result *= term(interpreter, END, var);
         }
 
+        if ((interpreter->current).type == VARIABLE) {
+            if (var == INFINITY) {errFunc(UNKNOWN_SYMBOL, NULL);}
+            result *= term(interpreter, END, var);
+        }
         break;
     case VARIABLE:
         if (var == INFINITY) {errFunc(UNKNOWN_SYMBOL, NULL);}
-        
+
         result = var;
         advanceToken(interpreter);
 
-        // If there's a function afterwards, treat this as multiplication
-        if ((interpreter->current).type == FUNCTION) {
+        if ((interpreter->current).type == NUMERICAL || (interpreter->current).type == VARIABLE) {
+            errFunc(INVALID_COMBINATION, NULL);
+        }
+
+        if ((interpreter->current).type == CONSTANT ||
+            (interpreter->current).type == FUNCTION ||
+            (interpreter->current).type == LPAREN) {
             result *= term(interpreter, END, var);
         }
 
@@ -78,7 +107,7 @@ double term(Interpreter *interpreter, TokenType terminal, double var) {
         if ((interpreter->current).value[0] == '+' || (interpreter->current).value[0] == '-') {
             result = 0; // To handle cases like +5-8 and -5*4
         } else {
-            errFunc(INVALID_OPERATOR_COMBINATION, NULL);
+            errFunc(INVALID_COMBINATION, NULL);
         }
         break;
     case FUNCTION:

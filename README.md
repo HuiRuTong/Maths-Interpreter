@@ -3,13 +3,14 @@ An interpreter for the user to enter basic maths expressions.
 
 ## Syntax:
 1. Operators:
-    - Plus (\+) & minus (\-) can be combined indefinitely
+    - Plus (\+) & minus (\-) can be combined indefinitely.
     - Times (\*), divide (/), & exponentiation (^) cannot be combined with any other operator. If you wish to enter a negative exponent, use parentheses _e.g. e^(-2)_.
     - If no operand appears before an + or -, it is assumed to be 0.
+    - Implied multiplication such as 1.23sin(pi) takes precedence over exponentiation (^) so _1.23e^2 = (1.23e)^2_.
 
 2. Spaces:
     - Between numbers, variables, and operations are OK but all functions and their arguments shouldn't be separated.
-    - Also don't separate pi. It's one word.
+    - Also don't separate pi; it's one word.
 
 3. Decimals:
     - Any missing digits before or after a decimal point (.) is assumed to be 0.
@@ -21,6 +22,7 @@ An interpreter for the user to enter basic maths expressions.
 
 6. Special symbols:
     - The interpreter recognises "e" and "pi" as 2.71828 and 3.14159 respectively
+    - You can of course multiply these with regular numbers & with each other. The following are all valid: _3.14pi, pie, pipipie, pisin(pi)_
 
 ## Variable Mode
 This calculator can also be set to evaluate an equation at differing values of x (and ONLY x)! Compile and run main with 1 as the second argument to enter Variable mode. Multiplication between variables & numbers or functions can omit the operator (*).
